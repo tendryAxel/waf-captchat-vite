@@ -7,10 +7,13 @@ export const get = (
     total: number,
     reload: () => void,
     container: HTMLElement,
+    token: string,
 ) => {
     let needRenderCaptcha = false;
     if (remaining == 0) return false;
-    axios.get(import.meta.env.VITE_URL)
+    axios.get(import.meta.env.VITE_URL, {headers: {
+            'x-aws-waf-token': token
+        }})
         .then(response => {
             console.log(response.data)
         })
@@ -21,8 +24,8 @@ export const get = (
                 needRenderCaptcha = true;
                 renderCaptcha(container, import.meta.env.VITE_API_KEY, {
                     onLoad: () => {console.log("load")},
-                    onSuccess: () => get(addFunction, remaining - 1, total, reload, container),
-                    onPuzzleCorrect: () => get(addFunction, remaining - 1, total, reload, container),
+                    onSuccess: () => get(addFunction, remaining - 1, total, reload, container, token),
+                    onPuzzleCorrect: () => get(addFunction, remaining - 1, total, reload, container, token),
                 })
             }
             // console.error(error)
@@ -30,7 +33,7 @@ export const get = (
         .finally(()=> {
             reload();
             if (!needRenderCaptcha)
-                get(addFunction, remaining - 1, total, reload, container);
+                get(addFunction, remaining - 1, total, reload, container, token);
         })
     return true;
 }

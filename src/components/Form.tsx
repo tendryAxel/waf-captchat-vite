@@ -1,6 +1,10 @@
 import {MouseEventHandler, useEffect, useRef, useState} from "react";
 import {get} from "../utils.ts";
 
+declare class AwsWafIntegration {
+    public static getToken(): Promise<string>;
+}
+
 export default () => {
     const [outputs, setOutputs] = useState<string[]>([])
     const [state, setState] = useState<boolean>(true)
@@ -14,7 +18,9 @@ export default () => {
     const onclick: MouseEventHandler<HTMLButtonElement> = (e) => {
         e.preventDefault();
 
-        get(addOutput, numberOfRequest, numberOfRequest, ()=>setState(!state), ref.current!);
+        AwsWafIntegration.getToken().then(token=>{
+            get(addOutput, numberOfRequest, numberOfRequest, ()=>setState(!state), ref.current!, token);
+        })
     }
 
     useEffect(() => {}, [state])
