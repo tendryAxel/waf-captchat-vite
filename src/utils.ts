@@ -8,6 +8,7 @@ export const get = (
     reload: () => void,
     container: HTMLElement,
 ) => {
+    let needRenderCaptcha = false;
     if (remaining == 0) return false;
     axios.get(import.meta.env.VITE_URL)
         .then(response => {
@@ -17,13 +18,19 @@ export const get = (
             addFunction((total-remaining) + ": " + error.message)
             if (error.status === 405) {
                 console.log("render")
-                renderCaptcha(container, import.meta.env.VITE_API_KEY, {onLoad: () => {console.log("load")}})
+                needRenderCaptcha = true;
+                renderCaptcha(container, import.meta.env.VITE_API_KEY, {
+                    onLoad: () => {console.log("load")},
+                    onSuccess: () => get(addFunction, remaining - 1, total, reload, container),
+                    onPuzzleCorrect: () => get(addFunction, remaining - 1, total, reload, container),
+                })
             }
             // console.error(error)
         })
         .finally(()=> {
             reload();
-            get(addFunction, remaining - 1, total, reload, container);
+            if (!needRenderCaptcha)
+                get(addFunction, remaining - 1, total, reload, container);
         })
     return true;
 }
